@@ -34,106 +34,10 @@ df['obscene_binary'].astype(int)
 # make date column
 df['date_only'] = pd.to_datetime(df['created_date']).dt.date
 
-
-#%% 
-# counts_over_time
-counts_over_time = df.groupby('date_only')['id'].count().reset_index()
-
-#%%
-# all_ethnicities
-all_ethnicities = df.groupby('date_only')['asian', 'black', 'white', 'latino', 'other_race_or_ethnicity'].sum().reset_index()
-
-#%%
-# melted_ethnicities
-melted_ethnicities = all_ethnicities.melt('date_only', var_name = 'Ethnicities', value_name = 'count')
-
-
-#%%
-## peak_white (charlottesville)
-peak_white_mask = (df['date_only'] == date(2017,8,16)) & (df['white'] >= 0.5)
-charl = df[peak_white_mask]
-
-#%%
-## fake_news_mask
-fake_news_mask = df['comment_text'].str.lower().str.contains('fake news')
-df[fake_news_mask]
-
-
 #%%
 ## string counts function
 def str_counts(s: str, target: str) -> int:
     return len(re.findall(target, s))
-
-
-#%%
-# fake news in comments
-df['comment_text'].apply(str_counts, args = ('fake news',)).idxmax()
-df.loc[384103]['comment_text']
-
-#%%
-mask = df.groupby('article_id')['comment_text']
-
-
-#%% [markdown]
-# mask.apply(str_counts, args = ('fake news',)).idxmax()
-
-
-#%%
-## peak_asian 
-df.loc[df['asian'].idxmax()]
-peak_asian_mask = (df['date_only'] == date(2017,7,14)) & (df['asian'] >= 0.5)
-bastille_day = df[peak_asian_mask]
-
-
-#%%
-## day before peak asian
-pre_bastille_mask = (df['date_only'] == date(2017,7,13)) & (df['asian'] >= 0.5)
-pre_bastille = df[pre_bastille_mask]
-
-
-#%%
-## peak black
-all_ethnicities.loc[all_ethnicities['black'].idxmax()]
-peak_black_mask = (df['date_only'] == date(2017,9,26)) & (df['black'] >= 0.5)
-kneeling = df[peak_black_mask]
-
-#%%
-# threats
-threat_mask = df['threat_binary'] == 1
-threats = df[threat_mask]
-
-#%%
-## non_threats
-non_threat_mask = df['threat_binary'] == 0
-non_threat = df[non_threat_mask]
-
-#%%
-## obscene
-obscene_mask = df['obscene_binary'] == 1
-obscene = df[obscene_mask]
-
-
-#%%
-## sex and gender
-sex_gender = df.groupby('date_only')['male', 'female', 'other_gender', 'transgender'].sum().reset_index()
-melted_sex_gender = sex_gender.melt('date_only', var_name = 'Sex_or_Gender', value_name = 'count')
-
-
-#%%
-## peak female
-sex_gender.loc[sex_gender['female'].idxmax()]['date_only']
-peak_female_mask = (df['date_only'] == date(2017,1,22)) & (df['female'] >= 0.5)
-womens_march = df[peak_female_mask]
-
-#%%
-## article comments
-article_comments = df.groupby('article_id')['article_id','comment_text'].apply(lambda x : x)
-article_comments['comment_text'].apply(str_counts, args = ('fake news',)).idxmax()
-
-
-#%%
-## peak fake news
-article_comments.loc[384103]['comment_text']
 
 #%%
 ## my wordcloud function
