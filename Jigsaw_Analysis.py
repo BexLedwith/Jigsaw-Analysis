@@ -11,14 +11,15 @@ from os import path
 from PIL import Image
 from wordcloud import WordCloud, STOPWORDS, ImageColorGenerator
 import matplotlib.pyplot as plt
-get_ipython().run_line_magic('matplotlib', 'inline')
+import click
 
 #%%
-# read csv
-df = pd.read_csv("train.csv")
-
-# make date column
-df['date_only'] = pd.to_datetime(df['created_date']).dt.date
+def load_data(file_name, date_column= 'created_date'):
+    """read csv and make datetime column"""
+    df = pd.read_csv("train.csv")
+    df['date_only'] = pd.to_datetime(df['created_date']).dt.date
+    print(df.shape)
+    return df
 
 #%%
 ## string counts function
@@ -77,5 +78,18 @@ def ngrams(input, n):
     return output
 
 
+#%%
+@click.command()
+@click.argument('file')
+@click.option('--column', default = 'female')
+@click.option('--cutoff', default = 0.5)
+@click.option('--max_words', default = 100)
+@click.option('--n', default = 1)
 
+def runner(file, column, cutoff, max_words, n):
+    df = load_data(file)
+    wordcloud(df, column, peak_date(df, column), cutoff, max_words = max_words, n = n)
+
+if __name__ == '__main__':
+    runner()
 
