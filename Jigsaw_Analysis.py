@@ -17,20 +17,6 @@ get_ipython().run_line_magic('matplotlib', 'inline')
 # read csv
 df = pd.read_csv("train.csv")
 
-
-
-#%%
-# binarize threat and obscene
-max_threat = df['threat'] >= 0.5
-df['threat_binary'] = max_threat
-df['threat_binary'].astype(int)
-
-max_obscene = df['obscene'] >= 0.5
-df['obscene_binary'] = max_obscene
-df['obscene_binary'].astype(int)
-
-
-#%%
 # make date column
 df['date_only'] = pd.to_datetime(df['created_date']).dt.date
 
