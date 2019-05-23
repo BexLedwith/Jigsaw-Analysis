@@ -4,7 +4,7 @@
 
 from pprint import pprint
 import re
-from datetime import date
+from datetime import date, timedelta
 import pandas as pd
 import seaborn as sns
 from os import path
@@ -12,6 +12,7 @@ from PIL import Image
 from wordcloud import WordCloud, STOPWORDS, ImageColorGenerator
 import matplotlib.pyplot as plt
 import click
+import sys
 
 #%%
 def load_data(file_name, date_column= 'created_date'):
@@ -33,7 +34,19 @@ def wordcloud(df, column, date_, cutoff = 0.5, **kwargs):
     new_mask = df[mask]
     
     stopwords = set(STOPWORDS)
-    stopwords.update(["this", "the", "that", "with", ' ', column])
+    stopwords.update(["i", "me", "my", "myself", "we", "our", "ours", "ourselves", 
+        "you", "your", "yours", "yourself", "yourselves", "he", "him", "his", "himself", 
+        "she", "her", "hers", "herself", "it", "its", "itself", "they", "them", "their", 
+        "theirs", "themselves", "what", "which", "who", "whom", "this", "that", "these", 
+        "those", "am", "is", "are", "was", "were", "be", "been", "being", "have", "has", 
+        "had", "having", "do", "does", "did", "doing", "a", "an", "the", "and", "but", "if", 
+        "or", "because", "as", "until", "while", "of", "at", "by", "for", "with", "about", 
+        "against", "between", "into", "through", "during", "before", "after", "above", 
+        "below", "to", "from", "up", "down", "in", "out", "on", "off", "over", "under", 
+        "again", "further", "then", "once", "here", "there", "when", "where", "why", "how", 
+        "all", "any", "both", "each", "few", "more", "most", "other", "some", "such", "no", 
+        "nor", "not", "only", "own", "same", "so", "than", "too", "very", "s", "t", "can", 
+        "will", "just", "don", "should", "now", ' ', column])
     
     text = " ".join(x for x in new_mask['comment_text'])
     
@@ -55,16 +68,19 @@ def wordcloud(df, column, date_, cutoff = 0.5, **kwargs):
     plt.figure(figsize=(12,12))
     plt.imshow(wordcloud, interpolation="bilinear")
     plt.axis("off")
-    plt.show()
+    plt.savefig(f'{column} {date_}.png')
     
-    pprint(d)
 
 
 #%%
 ## peak_date function
-def peak_date(df, column):
-    grouped = df.groupby('date_only')[column].sum().reset_index()
-    return grouped.loc[grouped[column].idxmax()]['date_only']
+def peak_date(df, column, offset):
+    try:
+        grouped = df.groupby('date_only')[column].sum().reset_index()
+    except KeyError:
+        print('This column does not exist:',column)
+        sys.exit()
+    return grouped.loc[grouped[column].idxmax()+offset]['date_only']
 
 #%%
 ## ngrams function
@@ -78,6 +94,7 @@ def ngrams(input, n):
     return output
 
 
+
 #%%
 @click.command()
 @click.argument('file')
@@ -85,10 +102,11 @@ def ngrams(input, n):
 @click.option('--cutoff', default = 0.5)
 @click.option('--max_words', default = 100)
 @click.option('--n', default = 1)
+@click.option('--offset', default=0)
 
-def runner(file, column, cutoff, max_words, n):
+def runner(file, column, cutoff, max_words, n, offset):
     df = load_data(file)
-    wordcloud(df, column, peak_date(df, column), cutoff, max_words = max_words, n = n)
+    wordcloud(df, column, peak_date(df, column, offset), cutoff, max_words = max_words, n = n)
 
 if __name__ == '__main__':
     runner()
